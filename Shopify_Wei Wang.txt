@@ -1,0 +1,96 @@
+-- Winter 2021 Data Science Intern Challenge
+
+--Question 1: 
+a. Think about what could be going wrong with our calculation. Think about a better way to evaluate this data.
+The naively calculated average order value (AOV) is the mean of all 5000 transactions' order amount across the 100 sneakers shops over a 30 day window. By definition, $3145.13 is not the average order value.
+
+For each sneaker store, the AOV is equal to the order amount divided by the number of transactions. Using R, I summed the order amount for each store and counted the number of transactions for each store over a 30 day window. Then,
+I calculated the AOV for each store.
+
+There are two outliers, which are shop 42 with an AOV of $235,101.49 and shop 78 with an AOV of $49,213.04. 
+ -Shop 42 placed in total 51 transactions, where 17 transactions have a single transaction order amount of $704,000 for 2,000 items.
+ -Shop 78 placed in total 46 transactions, where each item costs $25,725.
+
+By excluding shop 42 and 78, the average order value of the 98 stores is $299.68. 
+
+b. What metric could you report for this dataset?
+Since there are two outliers, shop 42 and shop 78, I would report median AOE for the dataset as mean can be skewed can be greatly skewed by these two outliers.
+
+c. What is its value?
+The median AOE for the dataset is $308.89.
+
+--Question 2: 
+a. How many orders were shipped by Speedy Express in total?
+Using the query below, the total number of orders shipped by Speedy Express is 54
+
+SELECT Shippers.ShipperName, COUNT(OrderID) as NumberofOrders FROM Orders
+JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID
+WHERE Shippers.ShipperName = 'Speedy Express';
+
+b. What is the last name of the employee with the most orders?
+Using the query below, the last name of the employee with the most orders is Peacock, who placed 40 orders.
+
+SELECT Employees.LastName, COUNT(OrderID) as NumberofOrders
+FROM orders 
+JOIN Employees
+ON Orders.EmployeeID = Employees.EmployeeID
+GROUP BY Employees.LastName
+ORDER BY NumberofOrders DESC;
+
+c. What product was ordered the most by customers in Germany?
+Using the query below, Boston Crab was ordered the most by customers in Germany. Total quantities are 160. 
+
+SELECT Products.ProductName, SUM(OrderDetails.Quantity) AS TotalQuantityOrdered
+FROM Orders 
+JOIN Customers ON Orders.CustomerID = Customers.CustomerID
+JOIN OrderDetails ON Orders.OrderID = OrderDetails.OrderID
+JOIN Products ON Products.ProductID = OrderDetails.ProductID
+WHERE Customers.Country = 'Germany'
+GROUP BY Products.ProductName
+ORDER BY TotalQuantityOrdered DESC;
+
+Appendix: Q1 R Codes
+
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+
+#read in 2019 Winter Data Science Intern Challenge Data Set - Sheet1
+sneakers <- read.csv(file.choose(), header = TRUE, sep = ",") #load the train data into the house_data_train dataframe
+
+#Display a summary of sneakers data set
+#The naive AOV is the mean of order_amount of 5000 transactions
+summary(sneakers)
+
+#Group 5000 transactions by shop id and sum the order_amount for each shop
+shop_aggregated <- aggregate(sneakers$order_amount, by = list(Shop = sneakers$shop_id), FUN = sum)
+
+#Calculate the number of transactions for each shop
+shop_frequency <- count(sneakers, 'shop_id')
+
+#Add number of transactions column to shop_aggregated data set
+shop_aggregated$n_of_transactions <- shop_frequency$freq 
+
+#Rename x column name to order_amounts_aggregated
+colnames(shop_aggregated)[2] <- "order_amounts_aggregated"
+
+#Calculate the average order value of each store
+shop_aggregated$aov = shop_aggregated$order_amounts_aggregated / shop_aggregated$n_of_transactions
+
+#Display a summary of the data set
+summary(shop_aggregated)
+
+#Plot a bar chart for the 100 shops, showing two outliers
+plot <- ggplot(data = shop_aggregated, aes(x = Shop, y = aov)) + geom_bar(stat = "identity")
+plot
+
+#Shop 42 has an average order value of $235101.49 and shop 78 has an average order value of $49213.04. They are potentially outliers, as sneakers are unlikely to be that expensive.
+shop_aggregated_dropped <- shop_aggregated[-c(42, 78),]
+
+#Plot a bar chart for the 98 shop
+plot <- ggplot(data = shop_aggregated_dropped, aes(x = Shop, y = aov)) + geom_bar(stat = "identity")
+plot
+
+#The median average order value for the 100 sneaker stores is $308.89
+median(shop_aggregated$aov)
+
