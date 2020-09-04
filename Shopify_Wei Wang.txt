@@ -14,7 +14,7 @@ There are two outliers, which are shop 42 with an AOV of $235,101.49 and shop 78
 By excluding shop 42 and 78, the average order value of the 98 stores is $299.68. 
 
 b. What metric could you report for this dataset?
-Since there are two outliers, shop 42 and shop 78, I would report median AOE for the dataset as mean can be skewed can be greatly skewed by these two outliers.
+Since there are two outliers, shop 42 and shop 78, I would report median AOE for the dataset as mean can be greatly skewed by these two outliers.
 
 c. What is its value?
 The median AOE for the dataset is $308.89.
@@ -23,7 +23,8 @@ The median AOE for the dataset is $308.89.
 a. How many orders were shipped by Speedy Express in total?
 Using the query below, the total number of orders shipped by Speedy Express is 54
 
-SELECT Shippers.ShipperName, COUNT(OrderID) as NumberofOrders FROM Orders
+SELECT Shippers.ShipperName, COUNT(OrderID) as NumberofOrders 
+FROM Orders
 JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID
 WHERE Shippers.ShipperName = 'Speedy Express';
 
@@ -38,7 +39,7 @@ GROUP BY Employees.LastName
 ORDER BY NumberofOrders DESC;
 
 c. What product was ordered the most by customers in Germany?
-Using the query below, Boston Crab was ordered the most by customers in Germany. Total quantities are 160. 
+Using the query below, Boston Crab Meat was ordered the most by customers in Germany. Total quantities are 160. 
 
 SELECT Products.ProductName, SUM(OrderDetails.Quantity) AS TotalQuantityOrdered
 FROM Orders 
@@ -93,4 +94,3 @@ plot
 
 #The median average order value for the 100 sneaker stores is $308.89
 median(shop_aggregated$aov)
-
